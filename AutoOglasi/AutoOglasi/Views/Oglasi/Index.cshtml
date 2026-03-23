@@ -1,0 +1,90 @@
+﻿@model IEnumerable<AutoOglasi.Models.Oglas>
+
+@{
+    ViewData["Title"] = "Oglasi";
+}
+
+<div class="container mt-4">
+
+    <!-- Forma za pretragu -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">🔍 Pretraži oglase</h5>
+            <form method="get" asp-action="Index">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <select name="marka" class="form-select">
+                            <option value="">-- Sve marke --</option>
+                            @foreach (var m in ViewBag.Marke)
+                            {
+                                <option value="@m.Value">@m.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="gorivo" class="form-select">
+                            <option value="">-- Gorivo --</option>
+                            @foreach (var g in ViewBag.Goriva)
+                            {
+                                <option value="@g">@g</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="cenaOd" class="form-control" placeholder="Cena od (€)" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="cenaDo" class="form-control" placeholder="Cena do (€)" />
+                    </div>
+                    <div class="col-md-2">
+                        <select name="godisteOd" class="form-select">
+                            <option value="">-- Godište od --</option>
+                            @foreach (var g in ViewBag.Godine)
+                            {
+                                <option value="@g">@g</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">Traži</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista oglasa -->
+    <div class="row">
+        @foreach (var oglas in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@oglas.Naslov</h5>
+                        <p class="text-muted small">
+                            @oglas.Model.Marka.Naziv @oglas.Model.Naziv • @oglas.Godiste. god.
+                        </p>
+                        <ul class="list-unstyled small">
+                            <li>⛽ @oglas.Gorivo</li>
+                            <li>⚙️ @oglas.Menjac</li>
+                            <li>📍 @oglas.Kilometraza.ToString("N0") km</li>
+                        </ul>
+                        <h4 class="text-primary mt-2">@oglas.Cena.ToString("N0") €</h4>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <a asp-action="Detalji" asp-route-id="@oglas.Id" 
+                           class="btn btn-outline-primary btn-sm w-100">
+                            Pogledaj oglas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Nema oglasa koji odgovaraju pretrazi.</div>
+    }
+
+</div>

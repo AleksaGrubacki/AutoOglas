@@ -1,0 +1,131 @@
+﻿@model AutoOglasi.Models.Oglas
+
+@{
+    ViewData["Title"] = "Postavi oglas";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4>Postavi novi oglas</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Novi" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label">Naslov oglasa</label>
+                            <input asp-for="Naslov" class="form-control" placeholder="npr. VW Golf 7 1.6 TDI" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Marka</label>
+                                <select id="markaSelect" class="form-select">
+                                    <option value="">-- Izaberi marku --</option>
+                                    @foreach (var m in ViewBag.Marke)
+                                    {
+                                        <option value="@m.Id">@m.Naziv</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Model</label>
+                                <select asp-for="ModelId" id="modelSelect" class="form-select">
+                                    <option value="">-- Prvo izaberi marku --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Godište</label>
+                                <select asp-for="Godiste" class="form-select">
+                                    @foreach (var g in ViewBag.Godine)
+                                    {
+                                        <option value="@g">@g</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Karoserija</label>
+                                <select asp-for="KategorijaId" class="form-select">
+                                    @foreach (var k in ViewBag.Kategorije)
+                                    {
+                                        <option value="@k.Id">@k.Naziv</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Gorivo</label>
+                                <select asp-for="Gorivo" class="form-select">
+                                    @foreach (var g in ViewBag.Goriva)
+                                    {
+                                        <option value="@g">@g</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Menjač</label>
+                                <select asp-for="Menjac" class="form-select">
+                                    @foreach (var m in ViewBag.Menjaci)
+                                    {
+                                        <option value="@m">@m</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Cena (€)</label>
+                                <input asp-for="Cena" class="form-control" type="number" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Kilometraža</label>
+                                <input asp-for="Kilometraza" class="form-control" type="number" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Opis</label>
+                            <textarea asp-for="Opis" class="form-control" rows="4"
+                                      placeholder="Opišite vozilo..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Postavi oglas</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Dinamicko filtriranje modela po marki
+        const sviModeli = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    ((IEnumerable<AutoOglasi.Models.Model>)ViewBag.Modeli)
+                    .Select(m => new { m.Id, m.Naziv, m.MarkaId })
+            ));
+
+    document.getElementById('markaSelect').addEventListener('change', function () {
+        const markaId = parseInt(this.value);
+        const modelSelect = document.getElementById('modelSelect');
+        modelSelect.innerHTML = '<option value="">-- Izaberi model --</option>';
+
+            const filtrirani = sviModeli.filter(m => m.markaId === markaId);
+            filtrirani.forEach(m => {
+                const option = document.createElement('option');
+                option.value = m.id;
+                option.textContent = m.naziv;
+                modelSelect.appendChild(option);
+            });
+        });
+    </script>
+}

@@ -1,0 +1,50 @@
+﻿@model AutoOglasi.Models.Oglas
+
+@{
+    ViewData["Title"] = Model.Naslov;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>@Model.Naslov</h2>
+            <p class="text-muted">Objavljeno: @Model.DatumObjave.ToString("dd.MM.yyyy")</p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5>Opis</h5>
+                    <p>@Model.Opis</p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>Detalji vozila</h5>
+                    <table class="table table-borderless">
+                        <tr><td><strong>Marka</strong></td><td>@Model.Model.Marka.Naziv</td></tr>
+                        <tr><td><strong>Model</strong></td><td>@Model.Model.Naziv</td></tr>
+                        <tr><td><strong>Godište</strong></td><td>@Model.Godiste</td></tr>
+                        <tr><td><strong>Kilometraža</strong></td><td>@Model.Kilometraza.ToString("N0") km</td></tr>
+                        <tr><td><strong>Gorivo</strong></td><td>@Model.Gorivo</td></tr>
+                        <tr><td><strong>Menjač</strong></td><td>@Model.Menjac</td></tr>
+                        <tr><td><strong>Karoserija</strong></td><td>@Model.Kategorija.Naziv</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="text-primary">@Model.Cena.ToString("N0") €</h3>
+                    <hr />
+                    <p><strong>Prodavac:</strong> @Model.Korisnik.Ime @Model.Korisnik.Prezime</p>
+                    <p><strong>Email:</strong> @Model.Korisnik.Email</p>
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
+                        ← Nazad na oglase
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
