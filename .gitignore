@@ -40,6 +40,3 @@ Thumbs.db
 ## Local / secrets
 appsettings.*.local.json
 *.Development.json.bak
-
-## Uploads (opciono: ukloni sledeće linije ako želiš verzionisanje uploada)
-# src/AutoOglasi.Web/wwwroot/uploads/
