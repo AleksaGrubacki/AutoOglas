@@ -22,3 +22,10 @@ dotnet ef migrations add ImeMigracije --project src/AutoOglasi.DAL/AutoOglasi.DA
 ```
 
 Connection string: `src/AutoOglasi.Web/appsettings.json` → `AutoOglasiConnection`.
+
+## Admin credentials
+
+```text
+markom@gmail.com
+1234
+```
