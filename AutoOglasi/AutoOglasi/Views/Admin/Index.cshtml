@@ -1,0 +1,130 @@
+﻿@{
+    ViewData["Title"] = "Admin Panel";
+}
+
+@section Styles {
+    <style>
+        .admin-hero {
+            background: #1a1a2e;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+            .admin-hero h2 {
+                color: white;
+                font-weight: 800;
+            }
+
+            .admin-hero p {
+                color: rgba(255,255,255,0.6);
+            }
+
+        .stat-card {
+            background: white;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-broj {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1a1a2e;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .admin-menu-card {
+            background: white;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            text-decoration: none;
+            display: block;
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+
+            .admin-menu-card:hover {
+                transform: translateY(-3px);
+            }
+
+            .admin-menu-card h5 {
+                color: #1a1a2e;
+                font-weight: 700;
+            }
+
+            .admin-menu-card p {
+                color: #888;
+                font-size: 0.9rem;
+                margin: 0;
+            }
+
+        .admin-menu-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+    </style>
+}
+
+<div class="admin-hero">
+    <div class="container">
+        <h2><i class="bi bi-shield-check"></i> Admin Panel</h2>
+        <p>Upravljajte sadržajem i korisnicima</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Statistike -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#e84118">🚗</div>
+                <div class="stat-broj">@ViewBag.BrojOglasa</div>
+                <div class="stat-label">Ukupno oglasa</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#27ae60">✅</div>
+                <div class="stat-broj">@ViewBag.BrojAktivnih</div>
+                <div class="stat-label">Aktivnih oglasa</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#3498db">👥</div>
+                <div class="stat-broj">@ViewBag.BrojKorisnika</div>
+                <div class="stat-label">Registrovanih korisnika</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meni -->
+    <div class="row">
+        <div class="col-md-6">
+            <a asp-action="Oglasi" class="admin-menu-card">
+                <div class="admin-menu-icon">🚗</div>
+                <h5>Upravljanje oglasima</h5>
+                <p>Pregled, aktivacija i brisanje oglasa</p>
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a asp-action="Korisnici" class="admin-menu-card">
+                <div class="admin-menu-icon">👥</div>
+                <h5>Upravljanje korisnicima</h5>
+                <p>Pregled korisnika, promena uloga</p>
+            </a>
+        </div>
+    </div>
+</div>

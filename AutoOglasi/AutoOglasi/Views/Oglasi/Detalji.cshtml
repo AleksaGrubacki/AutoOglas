@@ -1,49 +1,250 @@
 ﻿@model AutoOglasi.Models.Oglas
-
 @{
-    ViewData["Title"] = Model.Naslov;
+    ViewData["Title"] = Model.Naslov ?? "Detalji oglasa";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8">
-            <h2>@Model.Naslov</h2>
-            <p class="text-muted">Objavljeno: @Model.DatumObjave.ToString("dd.MM.yyyy")</p>
+@section Styles {
+    <style>
+        .detalji-hero {
+            background: #1a1a2e;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5>Opis</h5>
-                    <p>@Model.Opis</p>
-                </div>
+            .detalji-hero .breadcrumb-item a {
+                color: rgba(255,255,255,0.6);
+                text-decoration: none;
+            }
+
+            .detalji-hero .breadcrumb-item.active {
+                color: white;
+            }
+
+            .detalji-hero .breadcrumb-separator {
+                color: rgba(255,255,255,0.4);
+            }
+
+        .gallery-main {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 14px;
+            background: #f0f0f0;
+        }
+
+        .gallery-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: #ccc;
+        }
+
+        .gallery-thumbs {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .gallery-thumb {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+            .gallery-thumb:hover {
+                border-color: #e84118;
+            }
+
+        .info-card {
+            background: white;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            margin-bottom: 20px;
+        }
+
+        .price-big {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #e84118;
+        }
+
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+            .spec-row:last-child {
+                border-bottom: none;
+            }
+
+        .spec-label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .spec-value {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn-kontakt {
+            background: #e84118;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+            .btn-kontakt:hover {
+                background: #c0392b;
+            }
+
+        .btn-nazad {
+            background: #1a1a2e;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px;
+            font-weight: 600;
+            width: 100%;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+
+            .btn-nazad:hover {
+                background: #16213e;
+                color: white;
+            }
+    </style>
+}
+
+<div class="detalji-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a asp-controller="Oglasi" asp-action="Index">Oglasi</a>
+                </li>
+                <li class="breadcrumb-item active">@Model.Naslov</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row">
+        <!-- Leva strana -->
+        <div class="col-lg-8">
+            <!-- Galerija -->
+            @{
+                var slike = Model.Slike?.ToList();
+                var naslovna = slike?.FirstOrDefault(s => s.JeNaslovna);
+            }
+            @if (naslovna != null)
+            {
+                <img id="mainImg" src="@naslovna.PutanjaFajla" class="gallery-main" alt="@Model.Naslov" />
+                @if (slike!.Count > 1)
+                {
+                    <div class="gallery-thumbs">
+                        @foreach (var s in slike)
+                        {
+                            <img src="@s.PutanjaFajla" class="gallery-thumb"
+                                 onclick="document.getElementById('mainImg').src='@s.PutanjaFajla'" />
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="gallery-placeholder"><i class="bi bi-car-front"></i></div>
+            }
+
+            <!-- Opis -->
+            <div class="info-card mt-4">
+                <h5 class="fw-bold mb-3">Opis vozila</h5>
+                <p style="color:#555; line-height:1.7;">@Model.Opis</p>
             </div>
 
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5>Detalji vozila</h5>
-                    <table class="table table-borderless">
-                        <tr><td><strong>Marka</strong></td><td>@Model.Model.Marka.Naziv</td></tr>
-                        <tr><td><strong>Model</strong></td><td>@Model.Model.Naziv</td></tr>
-                        <tr><td><strong>Godište</strong></td><td>@Model.Godiste</td></tr>
-                        <tr><td><strong>Kilometraža</strong></td><td>@Model.Kilometraza.ToString("N0") km</td></tr>
-                        <tr><td><strong>Gorivo</strong></td><td>@Model.Gorivo</td></tr>
-                        <tr><td><strong>Menjač</strong></td><td>@Model.Menjac</td></tr>
-                        <tr><td><strong>Karoserija</strong></td><td>@Model.Kategorija.Naziv</td></tr>
-                    </table>
+            <!-- Specifikacije -->
+            <div class="info-card">
+                <h5 class="fw-bold mb-3">Specifikacije</h5>
+                <div class="spec-row">
+                    <span class="spec-label"><i class="bi bi-car-front"></i> Marka</span>
+                    <span class="spec-value">@Model.Model?.Marka?.Naziv</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label"><i class="bi bi-tag"></i> Model</span>
+                    <span class="spec-value">@Model.Model?.Naziv</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label"><i class="bi bi-calendar3"></i> Godište</span>
+                    <span class="spec-value">@Model.Godiste</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label"><i class="bi bi-speedometer2"></i> Kilometraža</span>
+                    <span class="spec-value">@Model.Kilometraza.ToString("N0") km</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label"><i class="bi bi-fuel-pump"></i> Gorivo</span>
+                    <span class="spec-value">@Model.Gorivo</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label"><i class="bi bi-gear"></i> Menjač</span>
+                    <span class="spec-value">@Model.Menjac</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label"><i class="bi bi-grid"></i> Karoserija</span>
+                    <span class="spec-value">@Model.Kategorija?.Naziv</span>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="text-primary">@Model.Cena.ToString("N0") €</h3>
-                    <hr />
-                    <p><strong>Prodavac:</strong> @Model.Korisnik.Ime @Model.Korisnik.Prezime</p>
-                    <p><strong>Email:</strong> @Model.Korisnik.Email</p>
-                    <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
-                        ← Nazad na oglase
-                    </a>
-                </div>
+        <!-- Desna strana -->
+        <div class="col-lg-4">
+            <div class="info-card">
+                <h4 class="fw-bold">@Model.Naslov</h4>
+                <p class="text-muted small">
+                    @Model.Model?.Marka?.Naziv @Model.Model?.Naziv •
+                    @Model.Godiste. god. •
+                    @Model.Kategorija?.Naziv
+                </p>
+                <div class="price-big mb-3">@Model.Cena.ToString("N0") €</div>
+                <hr />
+                <p class="fw-semibold mb-1">Prodavac</p>
+                <p class="mb-1">@Model.Korisnik?.Ime @Model.Korisnik?.Prezime</p>
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-envelope"></i> @Model.Korisnik?.Email
+                </p>
+                <button class="btn-kontakt">
+                    <i class="bi bi-telephone-fill"></i> Kontaktiraj prodavca
+                </button>
+                <a asp-action="Index" class="btn-nazad">
+                    ← Nazad na oglase
+                </a>
+            </div>
+
+            <div class="info-card">
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-clock"></i> Objavljeno: @Model.DatumObjave.ToString("dd.MM.yyyy")
+                </p>
             </div>
         </div>
     </div>

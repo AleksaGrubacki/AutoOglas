@@ -15,6 +15,7 @@ namespace AutoOglasi.Data
         public DbSet<Model> Modeli { get; set; }
         public DbSet<Kategorija> Kategorije { get; set; }
         public DbSet<Oglas> Oglasi { get; set; }
+        public DbSet<Slika> Slike { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +24,7 @@ namespace AutoOglasi.Data
             modelBuilder.Entity<Model>().ToTable("Modeli");
             modelBuilder.Entity<Kategorija>().ToTable("Kategorije");
             modelBuilder.Entity<Oglas>().ToTable("Oglasi");
+            modelBuilder.Entity<Slika>().ToTable("Slike");
         }
     }
 }
