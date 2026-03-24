@@ -1,17 +1,16 @@
-﻿using AutoOglasi.Data;
+using AutoOglasi.BLL;
 using AutoOglasi.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace AutoOglasi.Controllers
 {
     public class KorisniciController : Controller
     {
-        private readonly AutoOglasiContext _context;
+        private readonly IKorisnikService _korisnikService;
 
-        public KorisniciController(AutoOglasiContext context)
+        public KorisniciController(IKorisnikService korisnikService)
         {
-            _context = context;
+            _korisnikService = korisnikService;
         }
 
         public IActionResult Registracija()
@@ -26,33 +25,14 @@ namespace AutoOglasi.Controllers
         public async Task<IActionResult> Registracija(string ime, string prezime,
             string email, string lozinka, string lozinkaPotvrda)
         {
-            if (lozinka != lozinkaPotvrda)
+            var rezultat = await _korisnikService.RegistrujAsync(ime, prezime, email, lozinka, lozinkaPotvrda);
+            if (!rezultat.Uspeh || rezultat.Korisnik == null)
             {
-                ViewBag.Greska = "Lozinke se ne poklapaju!";
+                ViewBag.Greska = rezultat.Greska;
                 return View();
             }
 
-            var postojeci = await _context.Korisnici
-                .FirstOrDefaultAsync(k => k.Email == email);
-
-            if (postojeci != null)
-            {
-                ViewBag.Greska = "Korisnik sa tim emailom već postoji!";
-                return View();
-            }
-
-            var korisnik = new Korisnik
-            {
-                Ime = ime,
-                Prezime = prezime,
-                Email = email,
-                LozinkaHash = BCrypt.Net.BCrypt.HashPassword(lozinka),
-                Uloga = "User",
-                DatumRegistracije = DateTime.Now
-            };
-
-            _context.Korisnici.Add(korisnik);
-            await _context.SaveChangesAsync();
+            var korisnik = rezultat.Korisnik;
 
             HttpContext.Session.SetString("KorisnikEmail", korisnik.Email ?? "");
             HttpContext.Session.SetString("KorisnikIme", korisnik.Ime ?? "");
@@ -73,14 +53,14 @@ namespace AutoOglasi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Prijava(string email, string lozinka)
         {
-            var korisnik = await _context.Korisnici
-                .FirstOrDefaultAsync(k => k.Email == email);
-
-            if (korisnik == null || !BCrypt.Net.BCrypt.Verify(lozinka, korisnik.LozinkaHash))
+            var rezultat = await _korisnikService.PrijaviAsync(email, lozinka);
+            if (!rezultat.Uspeh || rezultat.Korisnik == null)
             {
-                ViewBag.Greska = "Pogrešan email ili lozinka!";
+                ViewBag.Greska = rezultat.Greska;
                 return View();
             }
+
+            var korisnik = rezultat.Korisnik;
 
             HttpContext.Session.SetString("KorisnikEmail", korisnik.Email ?? "");
             HttpContext.Session.SetString("KorisnikIme", korisnik.Ime ?? "");
@@ -102,13 +82,7 @@ namespace AutoOglasi.Controllers
             if (id == null)
                 return RedirectToAction("Prijava");
 
-            var korisnik = await _context.Korisnici
-                .Include(k => k.Oglasi!)
-                    .ThenInclude(o => o.Model!)
-                    .ThenInclude(m => m.Marka)
-                .Include(k => k.Oglasi!)
-                    .ThenInclude(o => o.Slike)
-                .FirstOrDefaultAsync(k => k.Id == id);
+            var korisnik = await _korisnikService.GetProfilAsync(id.Value);
 
             return View(korisnik);
         }

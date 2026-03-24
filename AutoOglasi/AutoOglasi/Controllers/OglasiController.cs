@@ -1,60 +1,34 @@
-﻿using AutoOglasi.Data;
+using AutoOglasi.BLL;
 using AutoOglasi.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace AutoOglasi.Controllers
 {
     public class OglasiController : Controller
     {
-        private readonly AutoOglasiContext _context;
+        private readonly IOglasService _oglasService;
         private readonly IWebHostEnvironment _env;
 
-        public OglasiController(AutoOglasiContext context, IWebHostEnvironment env)
+        public OglasiController(IOglasService oglasService, IWebHostEnvironment env)
         {
-            _context = context;
+            _oglasService = oglasService;
             _env = env;
         }
 
         public async Task<IActionResult> Index(string? marka, string? gorivo,
             int? godisteOd, int? godisteDo, decimal? cenaOd, decimal? cenaDo)
         {
-            var oglasi = _context.Oglasi
-                .Include(o => o.Model!).ThenInclude(m => m.Marka)
-                .Include(o => o.Kategorija)
-                .Include(o => o.Slike)
-                .Where(o => o.Aktivan)
-                .AsQueryable();
+            var oglasi = await _oglasService.GetFilteredAsync(marka, gorivo, godisteOd, godisteDo, cenaOd, cenaDo);
+            ViewBag.Marke = await _oglasService.GetMarkeSelectListAsync();
+            ViewBag.Goriva = _oglasService.GetGoriva();
+            ViewBag.Godine = _oglasService.GetGodine();
 
-            if (!string.IsNullOrEmpty(marka))
-                oglasi = oglasi.Where(o => o.Model!.Marka!.Naziv == marka);
-            if (!string.IsNullOrEmpty(gorivo))
-                oglasi = oglasi.Where(o => o.Gorivo == gorivo);
-            if (godisteOd.HasValue)
-                oglasi = oglasi.Where(o => o.Godiste >= godisteOd.Value);
-            if (godisteDo.HasValue)
-                oglasi = oglasi.Where(o => o.Godiste <= godisteDo.Value);
-            if (cenaOd.HasValue)
-                oglasi = oglasi.Where(o => o.Cena >= cenaOd.Value);
-            if (cenaDo.HasValue)
-                oglasi = oglasi.Where(o => o.Cena <= cenaDo.Value);
-
-            ViewBag.Marke = new SelectList(_context.Marke.OrderBy(m => m.Naziv), "Naziv", "Naziv");
-            ViewBag.Goriva = new List<string> { "Benzin", "Dizel", "Električni", "Hibridni pogon", "Gas (TNG)", "Metan (CNG)" };
-            ViewBag.Godine = Enumerable.Range(1970, DateTime.Now.Year - 1970 + 1).Reverse();
-
-            return View(await oglasi.OrderByDescending(o => o.DatumObjave).ToListAsync());
+            return View(oglasi);
         }
 
         public async Task<IActionResult> Detalji(int id)
         {
-            var oglas = await _context.Oglasi
-                .Include(o => o.Model!).ThenInclude(m => m.Marka)
-                .Include(o => o.Kategorija)
-                .Include(o => o.Korisnik)
-                .Include(o => o.Slike)
-                .FirstOrDefaultAsync(o => o.Id == id);
+            var oglas = await _oglasService.GetDetaljiAsync(id);
 
             if (oglas == null) return NotFound();
 
@@ -64,12 +38,12 @@ namespace AutoOglasi.Controllers
             return View(oglas);
         }
 
-        public IActionResult Novi()
+        public async Task<IActionResult> Novi()
         {
             if (HttpContext.Session.GetString("KorisnikEmail") == null)
                 return RedirectToAction("Prijava", "Korisnici");
 
-            PopuniDropdowne();
+            await PopuniDropdowneAsync();
             return View();
         }
 
@@ -82,70 +56,76 @@ namespace AutoOglasi.Controllers
 
             if (ModelState.IsValid)
             {
-                oglas.DatumObjave = DateTime.Now;
-                oglas.Aktivan = true;
-                oglas.KorisnikId = HttpContext.Session.GetInt32("KorisnikId") ?? 1;
-                _context.Add(oglas);
-                await _context.SaveChangesAsync();
-
-                if (slike != null && slike.Count > 0)
-                {
-                    var uploadFolder = Path.Combine(_env.WebRootPath, "uploads", "oglasi");
-                    Directory.CreateDirectory(uploadFolder);
-                    bool prva = true;
-
-                    foreach (var slika in slike)
-                    {
-                        if (slika.Length > 0)
-                        {
-                            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(slika.FileName);
-                            var filePath = Path.Combine(uploadFolder, fileName);
-                            using (var stream = new FileStream(filePath, FileMode.Create))
-                            {
-                                await slika.CopyToAsync(stream);
-                            }
-                            _context.Slike.Add(new Slika
-                            {
-                                OglasId = oglas.Id,
-                                PutanjaFajla = "/uploads/oglasi/" + fileName,
-                                JeNaslovna = prva
-                            });
-                            prva = false;
-                        }
-                    }
-                    await _context.SaveChangesAsync();
-                }
+                var korisnikId = HttpContext.Session.GetInt32("KorisnikId") ?? 1;
+                var oglasId = await _oglasService.KreirajAsync(oglas, korisnikId);
+                await _oglasService.DodajSlikeAsync(oglasId, slike, _env.WebRootPath);
 
                 return RedirectToAction(nameof(Index));
             }
-            PopuniDropdowne();
+            await PopuniDropdowneAsync();
+            return View(oglas);
+        }
+
+        public async Task<IActionResult> Uredi(int id)
+        {
+            if (HttpContext.Session.GetString("KorisnikEmail") == null)
+                return RedirectToAction("Prijava", "Korisnici");
+
+            var oglas = await _oglasService.GetByIdAsync(id);
+            if (oglas == null)
+                return NotFound();
+
+            var mojId = HttpContext.Session.GetInt32("KorisnikId") ?? 0;
+            var jeAdmin = HttpContext.Session.GetString("KorisnikUloga") == "Admin";
+            if (oglas.KorisnikId != mojId && !jeAdmin)
+                return RedirectToAction(nameof(Index));
+
+            await PopuniDropdowneAsync();
+            return View(oglas);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Uredi(Oglas oglas, List<IFormFile>? slike)
+        {
+            if (HttpContext.Session.GetString("KorisnikEmail") == null)
+                return RedirectToAction("Prijava", "Korisnici");
+
+            var mojId = HttpContext.Session.GetInt32("KorisnikId") ?? 0;
+            var jeAdmin = HttpContext.Session.GetString("KorisnikUloga") == "Admin";
+
+            if (ModelState.IsValid)
+            {
+                var uspeh = await _oglasService.UrediAsync(oglas, mojId, jeAdmin);
+                if (!uspeh)
+                    return RedirectToAction(nameof(Index));
+
+                await _oglasService.DodajSlikeAsync(oglas.Id, slike, _env.WebRootPath);
+                return RedirectToAction(nameof(Detalji), new { id = oglas.Id });
+            }
+
+            await PopuniDropdowneAsync();
             return View(oglas);
         }
 
         public async Task<IActionResult> Obrisi(int id)
         {
-            var uloga = HttpContext.Session.GetString("KorisnikUloga");
-            var mojId = HttpContext.Session.GetInt32("KorisnikId");
-
-            var oglas = await _context.Oglasi.FindAsync(id);
-            if (oglas == null) return NotFound();
-
-            if (oglas.KorisnikId != mojId && uloga != "Admin")
-                return RedirectToAction("Index");
-
-            _context.Oglasi.Remove(oglas);
-            await _context.SaveChangesAsync();
+            var obrisan = await _oglasService.ObrisiAsync(
+                id,
+                HttpContext.Session.GetInt32("KorisnikId"),
+                HttpContext.Session.GetString("KorisnikUloga"));
+            if (!obrisan) return NotFound();
             return RedirectToAction("Index");
         }
 
-        private void PopuniDropdowne()
+        private async Task PopuniDropdowneAsync()
         {
-            ViewBag.Marke = _context.Marke.OrderBy(m => m.Naziv).ToList();
-            ViewBag.Modeli = _context.Modeli.Include(m => m.Marka).OrderBy(m => m.Naziv).ToList();
-            ViewBag.Kategorije = _context.Kategorije.ToList();
-            ViewBag.Goriva = new List<string> { "Benzin", "Dizel", "Električni", "Hibridni pogon", "Gas (TNG)", "Metan (CNG)" };
-            ViewBag.Menjaci = new List<string> { "Manuelni", "Automatski", "Poluautomatski" };
-            ViewBag.Godine = Enumerable.Range(1970, DateTime.Now.Year - 1970 + 1).Reverse();
+            ViewBag.Marke = await _oglasService.GetMarkeAsync();
+            ViewBag.Modeli = await _oglasService.GetModeliAsync();
+            ViewBag.Kategorije = await _oglasService.GetKategorijeAsync();
+            ViewBag.Goriva = _oglasService.GetGoriva();
+            ViewBag.Menjaci = _oglasService.GetMenjaci();
+            ViewBag.Godine = _oglasService.GetGodine();
         }
     }
 }

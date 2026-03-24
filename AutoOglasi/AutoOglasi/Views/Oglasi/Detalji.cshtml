@@ -1,4 +1,4 @@
-﻿@model AutoOglasi.Models.Oglas
+@model AutoOglasi.Models.Oglas
 @{
     ViewData["Title"] = Model.Naslov ?? "Detalji oglasa";
 }
@@ -236,6 +236,12 @@
                 <button class="btn-kontakt">
                     <i class="bi bi-telephone-fill"></i> Kontaktiraj prodavca
                 </button>
+                @if (ViewBag.MozeUrediti == true)
+                {
+                    <a asp-action="Uredi" asp-route-id="@Model.Id" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="bi bi-pencil-square"></i> Izmeni oglas
+                    </a>
+                }
                 <a asp-action="Index" class="btn-nazad">
                     ← Nazad na oglase
                 </a>

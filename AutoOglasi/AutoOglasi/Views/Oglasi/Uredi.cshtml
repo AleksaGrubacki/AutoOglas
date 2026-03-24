@@ -1,0 +1,187 @@
+@model AutoOglasi.Models.Oglas
+@{
+    ViewData["Title"] = "Izmeni oglas";
+}
+
+<div class="container mt-4 mb-5">
+    <h2 class="mb-3"><i class="bi bi-pencil-square"></i> Izmeni oglas</h2>
+
+    <form asp-action="Uredi" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" />
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Osnovni podaci</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Naslov oglasa</label>
+                            <input asp-for="Naslov" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Opis vozila</label>
+                            <textarea asp-for="Opis" class="form-control" rows="5"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Podaci o vozilu</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Marka</label>
+                                <select id="markaSelect" class="form-select">
+                                    <option value="">-- Izaberi marku --</option>
+                                    @foreach (var m in ViewBag.Marke)
+                                    {
+                                        <option value="@m.Id">@m.Naziv</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Model</label>
+                                <select asp-for="ModelId" id="modelSelect" class="form-select"></select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Godište</label>
+                                <select asp-for="Godiste" class="form-select">
+                                    @foreach (var g in ViewBag.Godine)
+                                    {
+                                        <option value="@g">@g</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Karoserija</label>
+                                <select asp-for="KategorijaId" class="form-select">
+                                    <option value="">-- Izaberi karoseriju --</option>
+                                    @foreach (var k in ViewBag.Kategorije)
+                                    {
+                                        <option value="@k.Id">@k.Naziv</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Gorivo</label>
+                                <select asp-for="Gorivo" class="form-select">
+                                    <option value="">-- Izaberi gorivo --</option>
+                                    @foreach (var g in ViewBag.Goriva)
+                                    {
+                                        <option value="@g">@g</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Menjač</label>
+                                <select asp-for="Menjac" class="form-select">
+                                    <option value="">-- Izaberi menjač --</option>
+                                    @foreach (var m in ViewBag.Menjaci)
+                                    {
+                                        <option value="@m">@m</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Cena (€)</label>
+                                <input asp-for="Cena" class="form-control" type="number" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Kilometraža (km)</label>
+                                <input asp-for="Kilometraza" class="form-control" type="number" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Dodaj nove slike (opciono)</h5>
+                        <input type="file" id="slikeInput" name="slike" multiple accept="image/*" class="form-control" onchange="previewImages(this)" />
+                        <small class="text-muted">Nove slike će biti dodate na postojeće.</small>
+                        <div id="imagePreview" class="d-flex gap-2 flex-wrap mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card" style="position:sticky; top:20px;">
+                    <div class="card-body">
+                        <button type="submit" class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-check2-circle"></i> Sačuvaj izmene
+                        </button>
+                        <a asp-action="Detalji" asp-route-id="@Model.Id" class="btn btn-outline-secondary w-100">
+                            Odustani
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        var sviModeli = @Html.Raw(
+                    System.Text.Json.JsonSerializer.Serialize(
+                            ((IEnumerable<AutoOglasi.Models.Model>)ViewBag.Modeli)
+                            .Select(m => new { id = m.Id, naziv = m.Naziv, markaId = m.MarkaId })
+                            .ToList()
+                    )
+            );
+
+        var selectedModelId = @Model.ModelId;
+        var markaSelect = document.getElementById('markaSelect');
+        var modelSelect = document.getElementById('modelSelect');
+
+        function popuniModele(markaId, modelId) {
+            modelSelect.innerHTML = '<option value="">-- Izaberi model --</option>';
+            var filtrirani = sviModeli.filter(function (m) { return m.markaId === markaId; });
+            filtrirani.forEach(function (m) {
+                var option = document.createElement('option');
+                option.value = m.id;
+                option.textContent = m.naziv;
+                if (modelId && m.id === modelId) {
+                    option.selected = true;
+                }
+                modelSelect.appendChild(option);
+            });
+        }
+
+        markaSelect.addEventListener('change', function () {
+            var markaId = parseInt(this.value);
+            popuniModele(markaId, null);
+        });
+
+        var trenutniModel = sviModeli.find(function (m) { return m.id === selectedModelId; });
+        if (trenutniModel) {
+            markaSelect.value = trenutniModel.markaId;
+            popuniModele(trenutniModel.markaId, selectedModelId);
+        }
+
+        function previewImages(input) {
+            var preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            Array.from(input.files).forEach(function(file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '90px';
+                    img.style.height = '68px';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '8px';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+}
