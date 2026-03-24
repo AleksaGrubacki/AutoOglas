@@ -1,0 +1,27 @@
+@* Prikazuje ModelState greške sa čitljivim tekstom (uključujući Exception.Message kad ErrorMessage nedostaje). *@
+@if (!ViewData.ModelState.IsValid)
+{
+    var poruke = new List<string>();
+    foreach (var entry in ViewData.ModelState)
+    {
+        foreach (var err in entry.Value.Errors)
+        {
+            var msg = err.ErrorMessage;
+            if (string.IsNullOrWhiteSpace(msg) && err.Exception != null)
+                msg = err.Exception.Message;
+            if (!string.IsNullOrWhiteSpace(msg) && !poruke.Contains(msg))
+                poruke.Add(msg);
+        }
+    }
+    if (poruke.Count > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            <ul class="mb-0 ps-3">
+                @foreach (var p in poruke)
+                {
+                    <li>@p</li>
+                }
+            </ul>
+        </div>
+    }
+}

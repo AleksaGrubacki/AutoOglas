@@ -1,0 +1,149 @@
+@model IEnumerable<OglasViewModel>
+@{
+    ViewData["Title"] = "Admin - Oglasi";
+}
+
+@section Styles {
+    <style>
+        .admin-hero {
+            background: #1a1a2e;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+            .admin-hero h2 {
+                color: white;
+                font-weight: 800;
+            }
+
+            .admin-hero p {
+                color: rgba(255,255,255,0.6);
+            }
+
+        .table-card {
+            background: white;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        }
+
+        .badge-aktivan {
+            background: #e8f5e9;
+            color: #27ae60;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-neaktivan {
+            background: #fce4ec;
+            color: #e84118;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .btn-sm-red {
+            background: #fce4ec;
+            color: #e84118;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .btn-sm-green {
+            background: #e8f5e9;
+            color: #27ae60;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .btn-sm-orange {
+            background: #fff3e0;
+            color: #e65100;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+    </style>
+}
+
+<div class="admin-hero">
+    <div class="container">
+        <a asp-action="Index" style="color:rgba(255,255,255,0.6); text-decoration:none; font-size:0.9rem;">
+            ← Nazad na panel
+        </a>
+        <h2 class="mt-2"><i class="bi bi-car-front"></i> Upravljanje oglasima</h2>
+        <p>Ukupno: @Model.Count() oglasa</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Naslov</th>
+                        <th>Korisnik</th>
+                        <th>Cena</th>
+                        <th>Datum</th>
+                        <th>Status</th>
+                        <th>Akcije</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var oglas in Model)
+                    {
+                        <tr>
+                            <td class="text-muted">#@oglas.Id</td>
+                            <td>
+                                <strong>@oglas.Naslov</strong><br />
+                                <small class="text-muted">@oglas.Model?.Marka?.Naziv @oglas.Model?.Naziv</small>
+                            </td>
+                            <td>@oglas.Korisnik?.Ime @oglas.Korisnik?.Prezime</td>
+                            <td><strong>@oglas.Cena.ToString("N0") €</strong></td>
+                            <td class="text-muted small">@oglas.DatumObjave.ToString("dd.MM.yyyy")</td>
+                            <td>
+                                @if (oglas.Aktivan)
+                                {
+                                    <span class="badge-aktivan">Aktivan</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-neaktivan">Neaktivan</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="ToggleOglas" asp-route-id="@oglas.Id"
+                                   class="@(oglas.Aktivan ? "btn-sm-red" : "btn-sm-green")">
+                                    @(oglas.Aktivan ? "Deaktiviraj" : "Aktiviraj")
+                                </a>
+                                <a asp-controller="Oglasi" asp-action="Detalji" asp-route-id="@oglas.Id"
+                                   class="btn-sm-orange ms-1">Pogledaj</a>
+                                <a asp-action="ObrisiOglas" asp-route-id="@oglas.Id"
+                                   class="btn-sm-red ms-1"
+                                   onclick="return confirm('Sigurno želiš da obrišeš ovaj oglas?')">
+                                    Obriši
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

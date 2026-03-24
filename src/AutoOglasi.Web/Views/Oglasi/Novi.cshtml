@@ -1,0 +1,278 @@
+@model OglasFormViewModel
+@{
+    ViewData["Title"] = "Postavi oglas";
+}
+
+@section Styles {
+    <style>
+        .form-hero {
+            background: #1a1a2e;
+            padding: 30px 0;
+            margin-bottom: 35px;
+        }
+
+            .form-hero h2 {
+                color: white;
+                font-weight: 800;
+            }
+
+            .form-hero p {
+                color: rgba(255,255,255,0.6);
+            }
+
+        .form-card {
+            background: white;
+            border-radius: 14px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            margin-bottom: 20px;
+        }
+
+            .form-card h5 {
+                font-weight: 700;
+                color: #1a1a2e;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #f0f0f0;
+            }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #555;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1.5px solid #e0e0e0;
+            padding: 10px 14px;
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: #e84118;
+                box-shadow: 0 0 0 3px rgba(232,65,24,0.1);
+            }
+
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+            .upload-area:hover {
+                border-color: #e84118;
+            }
+
+            .upload-area i {
+                font-size: 2.5rem;
+                color: #ccc;
+            }
+
+        .btn-submit {
+            background: #e84118;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+            .btn-submit:hover {
+                background: #c0392b;
+            }
+
+        #imagePreview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+            #imagePreview img {
+                width: 80px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 8px;
+            }
+    </style>
+}
+
+<div class="form-hero">
+    <div class="container">
+        <h2><i class="bi bi-plus-circle-fill"></i> Postavi oglas</h2>
+        <p>Popuni sve detalje o vozilu koje prodaješ</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <form asp-action="Novi" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <partial name="_FormValidationSummary" />
+        <div class="row">
+            <div class="col-lg-8">
+
+                <!-- Osnovni podaci -->
+                <div class="form-card">
+                    <h5><i class="bi bi-info-circle"></i> Osnovni podaci</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Naslov oglasa</label>
+                        <input asp-for="Naslov" class="form-control" placeholder="npr. VW Golf 7 1.6 TDI Highline" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Opis vozila</label>
+                        <textarea asp-for="Opis" class="form-control" rows="5"
+                                  placeholder="Opišite stanje vozila, opremu, istoriju servisa..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Vozilo -->
+                <div class="form-card">
+                    <h5><i class="bi bi-car-front"></i> Podaci o vozilu</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Marka</label>
+                            <select id="markaSelect" class="form-select">
+                                <option value="">-- Izaberi marku --</option>
+                                @foreach (var m in ViewBag.Marke)
+                                {
+                                    <option value="@m.Id">@m.Naziv</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Model</label>
+                            <select asp-for="ModelId" id="modelSelect" class="form-select">
+                                <option value="">-- Prvo izaberi marku --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Godište</label>
+                            <select asp-for="Godiste" class="form-select">
+                                @foreach (var g in ViewBag.Godine)
+                                {
+                                    <option value="@g">@g</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Karoserija</label>
+                            <select asp-for="KategorijaId" class="form-select">
+                                <option value="">-- Izaberi karoseriju --</option>
+                                @foreach (var k in ViewBag.Kategorije)
+                                {
+                                    <option value="@k.Id">@k.Naziv</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Gorivo</label>
+                            <select asp-for="Gorivo" class="form-select">
+                                <option value="">-- Izaberi gorivo --</option>
+                                @foreach (var g in ViewBag.Goriva)
+                                {
+                                    <option value="@g">@g</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Menjač</label>
+                            <select asp-for="Menjac" class="form-select">
+                                <option value="">-- Izaberi menjač --</option>
+                                @foreach (var m in ViewBag.Menjaci)
+                                {
+                                    <option value="@m">@m</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Cena (€)</label>
+                            <input asp-for="Cena" class="form-control" type="number" placeholder="0" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Kilometraža (km)</label>
+                            <input asp-for="Kilometraza" class="form-control" type="number" placeholder="0" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slike -->
+                <div class="form-card">
+                    <h5><i class="bi bi-images"></i> Fotografije vozila</h5>
+                    <div class="upload-area" onclick="document.getElementById('slikeInput').click()">
+                        <i class="bi bi-cloud-upload"></i>
+                        <p class="mt-2 mb-0 text-muted">Klikni da dodaš fotografije</p>
+                        <p class="text-muted small">JPG, PNG • Prva slika će biti naslovna</p>
+                    </div>
+                    <input type="file" id="slikeInput" name="slike" multiple accept="image/*"
+                           style="display:none" onchange="previewImages(this)" />
+                    <div id="imagePreview"></div>
+                </div>
+
+            </div>
+
+            <!-- Desna strana -->
+            <div class="col-lg-4">
+                <div class="form-card" style="position:sticky; top:20px;">
+                    <h5><i class="bi bi-check-circle"></i> Objavi oglas</h5>
+                    <p class="text-muted small">Proverite sve podatke pre objavljivanja.</p>
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-rocket-takeoff"></i> Postavi oglas
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2 rounded-3">
+                        Odustani
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        var sviModeli = @Html.Raw(
+                    System.Text.Json.JsonSerializer.Serialize(
+                            ((IEnumerable<ModelViewModel>)ViewBag.Modeli)
+                            .Select(m => new { id = m.Id, naziv = m.Naziv, markaId = m.MarkaId })
+                            .ToList()
+                    )
+            );
+
+    document.getElementById('markaSelect').addEventListener('change', function () {
+        var markaId = parseInt(this.value);
+        var modelSelect = document.getElementById('modelSelect');
+        modelSelect.innerHTML = '<option value="">-- Izaberi model --</option>';
+        var filtrirani = sviModeli.filter(function(m) { return m.markaId === markaId; });
+        filtrirani.forEach(function(m) {
+            var option = document.createElement('option');
+            option.value = m.id;
+            option.textContent = m.naziv;
+            modelSelect.appendChild(option);
+        });
+    });
+
+        function previewImages(input) {
+            var preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            Array.from(input.files).forEach(function(file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = document.createElement('img');
+                    img.src = e.target.result;
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+}
